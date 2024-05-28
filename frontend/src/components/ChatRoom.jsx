@@ -11,9 +11,7 @@ const ChatRoom = () => {
     const newSocket = io("http://localhost:3000");
     setSocket(newSocket);
 
-    newSocket.on("connect", () => {
-      setId(`YOUR ID IS ${newSocket.id}`);
-    });
+    
 
     newSocket.on("message", (data, senderId) => {
       setMessages((prevMessages) => [
