@@ -2,7 +2,7 @@ const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv").config()
+const dotenv = require("dotenv").config();
 
 const signup = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -64,5 +64,6 @@ const login = asyncHandler(async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 module.exports = { login, signup };

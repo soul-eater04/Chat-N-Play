@@ -1,9 +1,14 @@
 import ChatRoom from "./components/ChatRoom";
+import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import { createBrowserRouter, RouterProvider, Link } from "react-router-dom";
 function App() {
   const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <LandingPage />,
+    },
     {
       path: "/signup",
       element: <Signup />,
@@ -11,6 +16,10 @@ function App() {
     {
       path: "/login",
       element: <Login />,
+    },
+    {
+      path: "/chat",
+      element: <ChatRoom />,
     },
     {
       path: "*",

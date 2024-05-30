@@ -1,15 +1,16 @@
-import axios from 'axios';
-import React, { useState } from 'react';
+import axios from "axios";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -19,12 +20,17 @@ const Login = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('http://localhost:3000/api/login', formData);
-      console.log('Login successful:', response.data);
-      // Handle successful login here (e.g., redirect to another page or store token)
+      const response = await axios.post(
+        "http://localhost:3000/api/login",
+        formData
+      );
+      console.log("Login successful:", response.data);
+      const { accessToken } = response.data;
+      localStorage.setItem("accessToken",accessToken);
+      navigate("/chat")
     } catch (err) {
-      console.error('Login failed:', err);
-      setError('Login failed. Please check your email and password.');
+      console.error("Login failed:", err);
+      setError("Login failed. Please check your email and password.");
     } finally {
       setLoading(false);
     }
@@ -66,11 +72,22 @@ const Login = () => {
           {error && <div className="mb-4 text-red-600">{error}</div>}
           <button
             type="submit"
-            className={`bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 w-full ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 w-full ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Log In'}
+            {loading ? "Logging in..." : "Log In"}
           </button>
+          <div className="mt-4">
+            Don't have an account?
+            <Link
+              className="px-2 underline underline-offset-2 text-blue-500 hover:text-blue-800 transition-colors"
+              to="/signup"
+            >
+              Sign up
+            </Link>
+          </div>
         </form>
       </div>
     </div>

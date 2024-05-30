@@ -1,31 +1,56 @@
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
+import axios from "axios";
 
 const ChatRoom = () => {
-  const [id, setId] = useState("");
-  const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [userName, setUserName] = useState("");
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        const response = await axios.post(
+          "http://localhost:3000/api/auth",
+          null,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        const { userName, email, userId } = response.data;
+        setUserName(userName);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchUserDetails();
     const newSocket = io("http://localhost:3000");
     setSocket(newSocket);
-
-    
-
-    newSocket.on("message", (data, senderId) => {
+    newSocket.on("message", (data) => {
       setMessages((prevMessages) => [
         ...prevMessages,
-        { message: data, senderId },
+        { message: data.message, userName: data.userName },
       ]);
     });
-
-    return () => newSocket.disconnect();
+    newSocket.on("disconnect", () => {
+      console.log("WebSocket disconnected");
+    });
+    newSocket.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
+    return () => {
+      newSocket.disconnect();
+    };
   }, []);
 
   const handleSendMessage = () => {
-    if (message.trim()) {
-      socket.emit("message", message);
+    if (message.trim() && socket) {
+      socket.emit("message", { message, userName });
       setMessage("");
     }
   };
@@ -35,7 +60,7 @@ const ChatRoom = () => {
       <div className="flex-1 bg-gray-200 p-4 overflow-y-auto">
         {messages.map((msg, index) => (
           <div key={index} className="bg-white p-2 rounded-md mb-2">
-            <span className="font-bold">{msg.senderId}:</span> {msg.message}
+            <span className="font-bold">{msg.userName}:</span> {msg.message}
           </div>
         ))}
       </div>
