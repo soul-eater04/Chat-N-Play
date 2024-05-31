@@ -11,7 +11,7 @@ const ChatRoom = () => {
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
+        const accessToken = localStorage.getItem("accessToken");
         const response = await axios.post(
           "http://localhost:3000/api/auth",
           null,
@@ -57,10 +57,12 @@ const ChatRoom = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex-1 bg-gray-200 p-4 overflow-y-auto">
+      <div className={`flex-1 bg-gray-200 p-12 overflow-y-auto`}>
         {messages.map((msg, index) => (
-          <div key={index} className="bg-white p-2 rounded-md mb-2">
-            <span className="font-bold">{msg.userName}:</span> {msg.message}
+          <div className={`flex ${userName === msg.userName ? "justify-end" : "justify-start"} `}>
+            <div key={index} className={`bg-white p-2 w-fit rounded-md mb-2`}>
+              <span className="font-bold">{userName === msg.userName ? "YOU" : msg.userName}:</span> {msg.message}
+            </div>
           </div>
         ))}
       </div>

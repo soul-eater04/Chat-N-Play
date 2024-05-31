@@ -1,4 +1,5 @@
 import ChatRoom from "./components/ChatRoom";
+import ChessboardComponent from "./components/ChessBoard";
 import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
@@ -8,6 +9,10 @@ function App() {
     {
       path: "/",
       element: <LandingPage />,
+    },
+    {
+      path: "/chess",
+      element: <ChessboardComponent />,
     },
     {
       path: "/signup",

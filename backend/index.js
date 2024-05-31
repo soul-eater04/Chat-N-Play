@@ -8,6 +8,7 @@ const app = express();
 const validateToken = require("./middleware/validateToken");
 const server = http.createServer(app);
 const connectDb = require("./config/connectDb");
+const Chess = require("chess.js");
 const io = new Server(server, {
   cors: {
     origin: ["http://localhost:5173"],
@@ -16,12 +17,22 @@ const io = new Server(server, {
 
 connectDb();
 
+let game = new Chess.Chess();
+
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
   socket.on("message", (data) => {
     const { message, userName } = data;
     console.log(`Received message: ${message} from ${userName}`);
     io.emit("message", { message, userName });
+  });
+  socket.on("playerMove", (move) => {
+    const moveResult = game.move(move);
+    if (moveResult) {
+      io.emit("newPosition", { position: game.fen() });
+    } else {
+      socket.emit("invalidMove");
+    }
   });
 });
 
