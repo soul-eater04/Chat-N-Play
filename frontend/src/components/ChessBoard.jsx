@@ -2,51 +2,58 @@ import React, { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import io from "socket.io-client";
+
 const socket = io("http://localhost:3000");
+
 function ChessboardComponent() {
   const [game, setGame] = useState(new Chess());
-  const [status, setStatus] = useState("white to move");
   const [position, setPosition] = useState("start");
+  const [assignedMessage, setAssignedMessage] = useState("");
+  const [turnMessage, setTurnMessage] = useState("");
+  const [color, setColor] = useState(null); // 'w' or 'b'
 
   useEffect(() => {
+    socket.on("assignColor", (assignedColor) => {
+      setColor(assignedColor);
+      setAssignedMessage(
+        `You have been assigned ${assignedColor === "w" ? "White" : "Black"}`
+      );
+    });
+
     socket.on("newPosition", (data) => {
       const currentGame = new Chess();
       currentGame.load(data.position);
       setGame(currentGame);
       setPosition(data.position);
+      setTurnMessage(`${data.color === "w" ? "Black" : "White"} to move`);
     });
+
+    // Request initial color assignment when component mounts
+    socket.emit("requestColor");
   }, []);
 
-  const onPieceDrop = (sourceSquare, targetSquare, piece) => {
-    const gameCopy = new Chess();
-    gameCopy.loadPgn(game.pgn());
-    const move = gameCopy.move({
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q",
-    });
+  const onPieceDrop = (sourceSquare, targetSquare) => {
+    if (game.turn() === color) {
+      // Allow move only if it's the player's turn
+      const gameCopy = new Chess();
+      gameCopy.load(game.fen());
+      const move = gameCopy.move({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q",
+      });
 
-    if (move === null) return false;
-
-    let newStatus;
-    if (gameCopy.isCheckmate()) {
-      newStatus = `player ${gameCopy.turn()} wins by checkmate!`;
-    } else if (gameCopy.inCheck()) {
-      newStatus = `player ${gameCopy.turn()} is in check!`;
-    } else {
-      newStatus = `${gameCopy.turn() === "w" ? "white" : "black"} to move`;
+      if (move !== null) {
+        socket.emit("move", move);
+        return true;
+      }
     }
-
-    socket.emit("playerMove", move);
-    setGame(gameCopy);
-    setPosition(gameCopy.fen());
-    setStatus(newStatus);
-    return true;
+    return false;
   };
 
   return (
     <div className="flex flex-col justify-center items-center h-screen">
-      <div className="max-w-[60vh] w-[60vw]">
+      <div>
         <Chessboard
           id="ConfigurableBoard"
           position={position}
@@ -57,7 +64,7 @@ function ChessboardComponent() {
           areArrowsAllowed={true}
           arePremovesAllowed={false}
           autoPromoteToQueen={true}
-          boardOrientation="white"
+          boardOrientation={color === "w" ? "white" : "black"}
           boardWidth={600}
           clearPremovesOnRightClick={true}
           customArrowColor="rgb(255,170,0)"
@@ -76,7 +83,12 @@ function ChessboardComponent() {
           snapToCursor={true}
         />
       </div>
-      <div>{status}</div>
+      <div className="mt-4 p-4 border rounded bg-gray-100 text-center">
+        {assignedMessage}
+      </div>
+      <div className="mt-2 p-4 border rounded bg-gray-100 text-center">
+        {turnMessage}
+      </div>
     </div>
   );
 }

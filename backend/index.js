@@ -5,37 +5,46 @@ const express = require("express");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const app = express();
-const validateToken = require("./middleware/validateToken");
+const validateToken = require("./middleware/validateToken")
+const Chess = require("chess.js").Chess;
+const connectDb = require("./config/connectDb")
 const server = http.createServer(app);
-const connectDb = require("./config/connectDb");
-const Chess = require("chess.js");
 const io = new Server(server, {
   cors: {
     origin: ["http://localhost:5173"],
   },
 });
 
-connectDb();
+connectDb()
 
-let game = new Chess.Chess();
+let game = new Chess();
+let users = [];
 
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
-  socket.on("message", (data) => {
-    const { message, userName } = data;
-    console.log(`Received message: ${message} from ${userName}`);
-    io.emit("message", { message, userName });
+
+  // Assign color to the new user
+  socket.on("requestColor", () => {
+    const color = users.length === 0 ? "w" : "b";
+    users.push({ id: socket.id, color: color });
+    socket.emit("assignColor", color);
   });
-  socket.on("playerMove", (move) => {
+  socket.on("move", (move) => {
     const moveResult = game.move(move);
     if (moveResult) {
-      io.emit("newPosition", { position: game.fen() });
+      io.emit("newPosition", { position: game.fen(), color: moveResult.color });
     } else {
       socket.emit("invalidMove");
     }
   });
+
+  socket.on("disconnect", () => {
+    users = users.filter((user) => user.id !== socket.id);
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
 });
 
+// Middleware and routes setup (as is)
 const userRoutes = require("./routes/userRoutes");
 
 app.use(express.json());
