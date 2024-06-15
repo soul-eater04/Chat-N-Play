@@ -9,7 +9,7 @@ function ChessboardComponent() {
   const [game, setGame] = useState(new Chess());
   const [position, setPosition] = useState("start");
   const [assignedMessage, setAssignedMessage] = useState("");
-  const [turnMessage, setTurnMessage] = useState("");
+  const [turnMessage, setTurnMessage] = useState("White to move");
   const [color, setColor] = useState(null); // 'w' or 'b'
 
   useEffect(() => {
@@ -34,18 +34,22 @@ function ChessboardComponent() {
 
   const onPieceDrop = (sourceSquare, targetSquare) => {
     if (game.turn() === color) {
-      // Allow move only if it's the player's turn
+      // Allow move only  if it's the player's turn
       const gameCopy = new Chess();
       gameCopy.load(game.fen());
-      const move = gameCopy.move({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion: "q",
-      });
+      try {
+        const move = gameCopy.move({
+          from: sourceSquare,
+          to: targetSquare,
+          promotion: "q",
+        });
 
-      if (move !== null) {
-        socket.emit("move", move);
-        return true;
+        if (move !== null) {
+          socket.emit("move", move);
+          return true;
+        }
+      } catch (err) {
+        console.log(err);
       }
     }
     return false;
@@ -59,7 +63,7 @@ function ChessboardComponent() {
           position={position}
           arePiecesDraggable={true}
           onPieceDrop={onPieceDrop}
-          allowDragOutsideBoard={false}
+          allowDragOutsideBoard={true}
           animationDuration={300}
           areArrowsAllowed={true}
           arePremovesAllowed={false}
