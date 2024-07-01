@@ -2,15 +2,28 @@ import React, { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import io from "socket.io-client";
+import Swal from "sweetalert2";
 
 const socket = io("http://localhost:3000");
+
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'bottom-right',
+  iconColor: 'black',
+  customClass: {
+    popup: 'colored-toast',
+  },
+  showConfirmButton: false,
+  timer: 1500,
+  timerProgressBar: true,
+});
 
 function ChessboardComponent() {
   const [game, setGame] = useState(new Chess());
   const [position, setPosition] = useState("start");
   const [assignedMessage, setAssignedMessage] = useState("");
   const [turnMessage, setTurnMessage] = useState("White to move");
-  const [color, setColor] = useState(null); // 'w' or 'b'
+  const [color, setColor] = useState(null);
 
   useEffect(() => {
     socket.on("assignColor", (assignedColor) => {
@@ -28,13 +41,11 @@ function ChessboardComponent() {
       setTurnMessage(`${data.color === "w" ? "Black" : "White"} to move`);
     });
 
-    // Request initial color assignment when component mounts
     socket.emit("requestColor");
   }, []);
 
   const onPieceDrop = (sourceSquare, targetSquare) => {
     if (game.turn() === color) {
-      // Allow move only  if it's the player's turn
       const gameCopy = new Chess();
       gameCopy.load(game.fen());
       try {
@@ -52,7 +63,13 @@ function ChessboardComponent() {
         console.log(err);
       }
     }
-    return false;
+    else {
+      Toast.fire({
+        icon: 'error',
+        title: 'NOT YOU TURN!',
+      })
+      return false;
+    }
   };
 
   return (

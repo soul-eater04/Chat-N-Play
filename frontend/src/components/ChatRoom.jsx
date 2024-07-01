@@ -9,74 +9,34 @@ const ChatRoom = () => {
   const [userName, setUserName] = useState("");
   const [socket, setSocket] = useState(null);
   const navigate = useNavigate();
-  useEffect(() => {
-    const initializeChat = async () => {
-      await fetchUserDetails();
-      
-      const newSocket = io("http://localhost:3000");
-      setSocket(newSocket);
-      
-      newSocket.emit("setUsername", userName);
-      
-      newSocket.on("message", (data) => {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { message: data.message, userName: data.userName },
-        ]);
-      });
-      newSocket.on("disconnect", () => {
-        console.log("WebSocket disconnected");
-      });
-      newSocket.on("error", (error) => {
-        console.error("WebSocket error:", error);
-      });
-  
-      newSocket.on("chess-challenge", ({ challenger }) => {
-        Swal.fire({
-          title: `${challenger} wants to challenge you to a chess game`,
-          showCancelButton: true,
-          confirmButtonText: 'Accept',
-          cancelButtonText: 'Decline',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            newSocket.emit("chess-challenge-response", { challenger, accepted: true });
-            navigate('/chess');
-          } else {
-            newSocket.emit("chess-challenge-response", { challenger, accepted: false });
-          }
-        });
-      });
-  
-      newSocket.on("chess-challenge-result", ({ accepted }) => {
-        if (accepted) {
-          Swal.fire('Challenge Accepted!', 'Redirecting to chess game...', 'success');
-          navigate('/chess');
-        } else {
-          Swal.fire('Challenge Declined', 'The player declined your challenge', 'info');
-        }
-      });
-    };
-    const fetchUserDetails = async () => {
-      try { 
-        const accessToken = localStorage.getItem("accessToken");
-        const response = await axios.post(
-          "http://localhost:3000/api/auth",
-          null,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        const { userName } = response.data; // Removed unused variables email and userId
-        setUserName(userName);
-      } catch (err) {
-        console.log(err);
-      }
-    };
+  const fetchUserDetails = async () => {
+    try { 
+      const accessToken = localStorage.getItem("accessToken");
+      const response = await axios.post(
 
-    fetchUserDetails().then(() => {
-      newSocket.emit("setUsername", userName);
+        "http://localhost:3000/api/auth",
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log(response.data); 
+      const { userName } = response.data;
+      setUserName(userName);
+      return userName;
+    } catch (err) {
+      console.log(err);
+      return null;
+    }
+  };
+  useEffect(() => {
+    fetchUserDetails().then((fetchedUserName) => {
+      if (fetchedUserName) {
+        console.log(fetchedUserName);
+        newSocket.emit("setUsername", fetchedUserName);
+      }
     });
     const newSocket = io("http://localhost:3000");
     setSocket(newSocket);

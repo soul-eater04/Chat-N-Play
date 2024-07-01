@@ -20,43 +20,40 @@ connectDb();
 let game = new Chess();
 let users = [];
 function findSocketByUsername(username) {
-  const user = users.find(user => user.username === username);
+  const user = users.find((user) => user.username === username);
   return user ? io.sockets.sockets.get(user.socketId) : null;
 }
 
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
-
-
-  socket.on("message",(data) => {
-    io.emit("message",data);
-  })
+  socket.on("message", (data) => {
+    io.emit("message", data);
+  });
 
   socket.on("setUsername", (username) => {
     users.push({ username: username, socketId: socket.id });
-    console.log(users)
+    console.log(users);
     console.log(`Username set for ${socket.id}: ${username}`);
   });
 
-  socket.on('chess-challenge-request', ({ challenger, opponent }) => {
+  socket.on("chess-challenge-request", ({ challenger, opponent }) => {
     const opponentSocket = findSocketByUsername(opponent);
     if (opponentSocket) {
-      opponentSocket.emit('chess-challenge', { challenger });
+      opponentSocket.emit("chess-challenge", { challenger });
     }
   });
 
-  socket.on('chess-challenge-response', ({ challenger, accepted }) => {
+  socket.on("chess-challenge-response", ({ challenger, accepted }) => {
     const challengerSocket = findSocketByUsername(challenger);
     if (challengerSocket) {
-      challengerSocket.emit('chess-challenge-result', { accepted });
+      challengerSocket.emit("chess-challenge-result", { accepted });
     }
   });
 
-  // Assign color to the new user
   socket.on("requestColor", () => {
     const color = users.length === 0 ? "w" : "b";
-    const userIndex = users.findIndex(user => user.socketId === socket.id);
+    const userIndex = users.findIndex((user) => user.socketId === socket.id);
     if (userIndex !== -1) {
       users[userIndex].color = color;
     }
@@ -79,7 +76,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    const index = users.findIndex(user => user.socketId === socket.id);
+    const index = users.findIndex((user) => user.socketId === socket.id);
     if (index !== -1) {
       console.log(`User ${users[index].username} disconnected`);
       users.splice(index, 1);
