@@ -91,7 +91,7 @@ app.use(cors({ origin: "http://localhost:5173" }));
 app.use("/api", userRoutes);
 app.post("/api/auth", validateToken, (req, res) => {
   console.log("validated the token");
-  res.send({
+  res.status(200).send({
     userId: req.userId,
     email: req.email,
     userName: req.username,

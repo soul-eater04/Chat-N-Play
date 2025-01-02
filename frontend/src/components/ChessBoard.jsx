@@ -37,6 +37,13 @@ function ChessboardComponent() {
       const currentGame = new Chess();
       currentGame.load(data.position);
       setGame(currentGame);
+      console.log(game.isGameOver());
+      if(game.isGameOver()){
+        Toast.fire({
+          icon: 'success',
+          title: 'GAME OVER!',
+        })
+      }
       setPosition(data.position);
       setTurnMessage(`${data.color === "w" ? "Black" : "White"} to move`);
     });

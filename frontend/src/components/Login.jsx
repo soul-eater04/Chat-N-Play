@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthProvider";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { login } = useAuth();
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -26,8 +28,8 @@ const Login = () => {
       );
       console.log("Login successful:", response.data);
       const { accessToken } = response.data;
-      localStorage.setItem("accessToken",accessToken);
-      navigate("/chat")
+      login(accessToken);
+      navigate("/chat");
     } catch (err) {
       console.error("Login failed:", err);
       setError("Login failed. Please check your email and password.");

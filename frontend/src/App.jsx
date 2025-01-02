@@ -2,8 +2,11 @@ import ChatRoom from "./components/ChatRoom";
 import ChessboardComponent from "./components/ChessBoard";
 import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
+import PrivateRoute from "./components/PrivateRoute";
 import Signup from "./components/Signup";
 import { createBrowserRouter, RouterProvider, Link } from "react-router-dom";
+import { AuthProvider } from './components/AuthProvider';
+
 function App() {
   const router = createBrowserRouter([
     {
@@ -12,7 +15,7 @@ function App() {
     },
     {
       path: "/chess",
-      element: <ChessboardComponent />,
+      element: <PrivateRoute><ChessboardComponent /></PrivateRoute>,
     },
     {
       path: "/signup",
@@ -24,7 +27,7 @@ function App() {
     },
     {
       path: "/chat",
-      element: <ChatRoom />,
+      element: <PrivateRoute><ChatRoom /></PrivateRoute>,
     },
     {
       path: "*",
@@ -40,7 +43,9 @@ function App() {
   ]);
   return (
     <>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </>
   );
 }
